@@ -4,8 +4,132 @@ output: html_notebook
 ---
 
 ```{r}
-plot(cars)
+install.packages("dtwclust")
 ```
 
+```{r}
 
+library(dtwclust)
+load("/Users/sarahkirsch/Propulsion Academy/Time Series/dtwclust/data/uciCT.rda")
+
+pc <- tsclust(CharTraj, type = "partitional", k = 20L, 
+              distance = "dtw_basic", centroid = "pam", 
+              seed = 3247L, trace = TRUE,
+              args = tsclust_args(dist = list(window.size = 20L)))
+
+plot(pc)
+```
+
+```{r}
+st <- read.csv("/Users/sarahkirsch/Propulsion Academy/CapstoneProject/Data/st_na.csv")
+br <- read.csv("/Users/sarahkirsch/Propulsion Academy/CapstoneProject/Data/br_na.csv")
+hr <- read.csv("/Users/sarahkirsch/Propulsion Academy/CapstoneProject/Data/hr_na.csv")
+
+st <- st[,-c(st$cycle_day)]
+br <- br[,-c(br$cycle_day)]
+hr <- hr[,-c(hr$cycle_day)]
+
+  
+ts.plot(st)
+
+ts.plot(br)
+
+ts.plot(hr)
+
+
+c_st <- tsclust(st, type = "partitional", k = 20L, 
+              distance = "dtw_basic", centroid = "pam", 
+              seed = 3247L, trace = TRUE,
+              args = tsclust_args(dist = list(window.size = 20L)))
+
+plot(c_st)
+
+```
+
+```{r}
+
+library(d3heatmap)
+library(gplots)
+my_palette <- colorRampPalette(c("blue","white","red"))(n = 25)
+
+# Plot heatmap with heatmap.2
+par(cex.main=0.75) # Shrink title fonts on plot
+heatmap.2(d1,                     # Tidy, normalised data
+          Colv=as.dendrogram(c1),     # Experiments clusters in cols
+          Rowv=as.dendrogram(c1),     # Protein clusters in rows
+          density.info="histogram",   # Plot histogram of data and colour key
+          trace="none",               # Turn of trace lines from heat map
+          col = my_palette,           # Use my colour scheme
+          cexRow=0.5,cexCol=0.75)  
+```
+
+```{r}
+### clustering all complete heart rate cycles
+d.hr <- dist(t(hr), method = "euclidean")
+c.hr <- hclust(d.hr, method = "ward.D2", members = NULL)  
+plot(c.hr)
+memb.hr <- cutree(c.hr, k = 3)
+rect.hclust(c.hr, k = 3, border = "red")
+### clustering all complete breathing rate cycles
+d.br <- dist(t(br), method = "euclidean")
+c2 <- hclust(d.br, method = "ward.D2", members = NULL)  
+plot(c2)
+
+### clustering all complete skin temperature cycles
+d.st <- dist(t(st), method = "euclidean")
+c3 <- hclust(d.st, method = "ward.D2", members = NULL)  
+plot(c3)
+```
+
+```{r}
+hr.29<- read.csv("/Users/sarahkirsch/Propulsion Academy/CapstoneProject/Data/hr_29.csv")
+#View(hr.29)
+
+
+
+require(dendextend)
+require(ggplot2)
+dist_29_eu<- dist(hr.29, method = 'euclidean')
+dist_29_man <- dist(hr.29, method = "manhattan")
+hc_29 <- hclust(dist_29_eu, method = "complete")
+
+
+# Create a dendrogram object from the hclust variable
+dend_29<- as.dendrogram(hc_29)
+
+# Plot the dendrogram
+plot(dend_29)
+
+library(RColorBrewer) 
+hmcol <- colorRampPalette(brewer.pal(9, "GnBu"))(100)
+library(gplots) ##Available from CRAN
+#cols <- palette(brewer.pal(8, "Dark2"))[as.fumeric(hr.29)]
+#head(cbind(colnames(e),cols))
+
+heatmap.2(as.matrix(dist_29_eu), dendrogram="column", keysize = 2)
+
+#plot a sub-cluster using the same color coding as for the full heatmap
+ #full <- heatmap.2(as.matrix(dist_29))
+ #heatmap.2(as.matrix(dist_29), Colv=full$colDendrogram[[2]], breaks=full$breaks)  # column subset
+ #heatmap.2(as.matrix(dist_29), Rowv=full$rowDendrogram[[1]], breaks=full$breaks)  # row subset
+ #heatmap.2(as.matrix(dist_29), Colv=full$colDendrogram[[2]],
+#              Rowv=full$rowDendrogram[[1]], breaks=full$breaks)  # both
+
+ ## Reorder dendrogram by branch means rather than sums
+ #heatmap.2(x, reorderfun=function(d, w) reorder(d, w, agglo.FUN = mean) )
+```
+
+```{r}
+ lmat <- rbind( c(5,3,4), c(2,1,4) )
+ lhei <- c(1.5, 4)
+ lwid <- c(1.5, 4, 0.75)
+
+ myplot <- function() {
+             oldpar <- par("mar")
+             par(mar=c(5.1, 4.1, 0.5, 0.5))
+             plot(mpg ~ hp, data=dist_29)
+           }
+
+ heatmap.2(as.matrix(dist_29), lmat=lmat, lhei=lhei, lwid=lwid, key=FALSE, extrafun=myplot)
+```
 
